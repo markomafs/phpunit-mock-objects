@@ -237,8 +237,16 @@ class PHPUnit_Framework_MockObject_Generator
             if (count($arguments) == 0) {
                 $object = new $className;
             } else {
-                $class = new ReflectionClass($className);
-                $object = $class->newInstanceArgs($arguments);
+                if ( PHP_VERSION_ID >= 50600) {
+                    $class = new ReflectionClass($className);
+                    $object = $class->newInstanceArgs($arguments);
+                } else {
+                    // Use a trick to create a new object of a class
+                    // without invoking its constructor. older versions
+                    $object = unserialize(
+                        sprintf('O:%d:"%s":0:{}', strlen($className), $className)
+                    );
+                }
             }
         } else {
             $class = new ReflectionClass($className);
